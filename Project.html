@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project — Project Monitoring Process</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg-dark:#151A21;
+    --ivory:#F3F1EA;
+    --amber:#C98A3E;
+    --amber-soft: rgba(201,138,62,0.14);
+    --slate:#6B7280;
+    --green:#4C9A72;
+    --red:#B3543A;
+    --line:#E3DFD3;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    background:#FAF9F5;
+    color:#1C2127;
+    min-height:100vh;
+  }
+  header{
+    background:var(--bg-dark);
+    color:var(--ivory);
+    padding:18px 40px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .wordmark{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:17px;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    text-decoration:none;
+    color:var(--ivory);
+  }
+  .wordmark .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);}
+  .header-right{display:flex; align-items:center; gap:18px;}
+  .header-right a, .header-right button{
+    color:rgba(243,241,234,0.72);
+    font-size:13.5px;
+    text-decoration:none;
+    background:none; border:none;
+    font-family:'Inter',sans-serif;
+    cursor:pointer;
+    padding:0;
+  }
+  .header-right a:hover, .header-right button:hover{color:var(--ivory);}
+  .who{font-size:13px; color:rgba(243,241,234,0.55);}
+
+  main{max-width:820px; margin:0 auto; padding:44px 24px 80px;}
+
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    color:var(--slate); font-size:13.5px; text-decoration:none;
+    margin-bottom:22px;
+  }
+  .back-link:hover{color:#1C2127;}
+
+  .project-head{margin-bottom:36px;}
+  .project-head h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:26px; font-weight:700;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  .project-head .desc{color:var(--slate); font-size:14.5px; margin:0 0 14px; max-width:560px;}
+  .pill{
+    font-size:11px; font-weight:600;
+    padding:3px 10px; border-radius:20px;
+    text-transform:uppercase; letter-spacing:0.03em;
+  }
+  .pill.status-active{background:var(--amber-soft); color:#8B5D24;}
+  .pill.status-on_hold{background:#EFEDE5; color:var(--slate);}
+  .pill.status-done{background:#E9F3EE; color:#2E6A4B;}
+
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:26px;
+    margin-bottom:24px;
+  }
+  .card h2{font-family:'Space Grotesk',sans-serif; font-size:16.5px; font-weight:600; margin:0 0 4px;}
+  .card .desc{color:var(--slate); font-size:13.5px; margin:0 0 20px;}
+
+  .add-row{display:flex; gap:10px; margin-bottom:6px; flex-wrap:wrap;}
+  select, input[type=text]{
+    padding:10px 13px;
+    border-radius:8px;
+    border:1.5px solid var(--line);
+    background:#FBFAF6;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    outline:none;
+  }
+  select:focus, input:focus{border-color:var(--amber); background:#fff;}
+  #memberSelect{flex:1.3; min-width:180px;}
+  #roleSelect{flex:1; min-width:140px;}
+  #customRole{flex:1; min-width:140px; display:none;}
+  .btn-add{
+    padding:10px 18px; border:none; border-radius:8px;
+    background:#1C2127; color:var(--ivory);
+    font-weight:600; font-size:14px; cursor:pointer;
+  }
+  .btn-add:hover{background:#282f38;}
+  .btn-add:disabled{background:#B7BCC2; cursor:not-allowed;}
+
+  table{width:100%; border-collapse:collapse; margin-top:20px;}
+  th{
+    text-align:left; font-size:11.5px; text-transform:uppercase;
+    letter-spacing:0.05em; color:var(--slate);
+    padding:8px 4px; border-bottom:1.5px solid var(--line);
+  }
+  td{padding:12px 4px; border-bottom:1px solid #EFEDE5; font-size:14px;}
+  td.sub{color:var(--slate); font-size:12.5px;}
+  .btn-remove{
+    background:none; border:none; color:var(--red);
+    font-size:13px; font-weight:600; cursor:pointer; padding:4px 8px;
+  }
+  .btn-remove:hover{text-decoration:underline;}
+  .empty-row{color:var(--slate); font-size:13.5px; padding:20px 4px;}
+
+  .msg{font-size:13px; padding:9px 12px; border-radius:7px; margin:14px 0 0; display:none;}
+  .msg.show{display:block;}
+  .msg.error{background:#FBEAE6; color:#A23E1E;}
+  .msg.success{background:#E9F3EE; color:#2E6A4B;}
+
+  .readonly-note{
+    background:#F3F1EA; border-radius:10px; padding:14px 16px;
+    font-size:13px; color:var(--slate);
+  }
+
+  .gate{max-width:420px; margin:120px auto; text-align:center; color:var(--slate); font-size:14.5px;}
+  .gate a{color:var(--amber); font-weight:600; text-decoration:none;}
+  #app{display:none;}
+</style>
+</head>
+<body>
+
+<div id="loadingGate" class="gate">Loading project…</div>
+<div id="deniedGate" class="gate" style="display:none;">
+  You don't have access to this project.<br><br>
+  <a href="dashboard.html">Back to dashboard</a>
+</div>
+
+<div id="app">
+  <header>
+    <a href="dashboard.html" class="wordmark"><span class="dot"></span>Project Monitoring Process</a>
+    <div class="header-right">
+      <a href="dashboard.html">Dashboard</a>
+      <button id="signOutBtn">Sign out</button>
+      <span class="who" id="whoLabel"></span>
+    </div>
+  </header>
+
+  <main>
+    <a href="dashboard.html" class="back-link">← Back to dashboard</a>
+
+    <div class="project-head">
+      <h1 id="projName">—</h1>
+      <p class="desc" id="projDesc"></p>
+      <span class="pill" id="projStatus"></span>
+    </div>
+
+    <div class="card">
+      <h2>Members</h2>
+      <p class="desc">People with access to this project and their role here.</p>
+
+      <div id="manageBlock">
+        <div class="add-row">
+          <select id="memberSelect"><option value="">Select a person…</option></select>
+          <select id="roleSelect">
+            <option value="Lead">Lead</option>
+            <option value="Admin">Admin</option>
+            <option value="Finance">Finance</option>
+            <option value="Member">Member</option>
+            <option value="Viewer">Viewer</option>
+            <option value="__custom">Custom…</option>
+          </select>
+          <input type="text" id="customRole" placeholder="Role name">
+          <button class="btn-add" id="addMemberBtn">Add</button>
+        </div>
+        <div class="msg error" id="errorMsg"></div>
+        <div class="msg success" id="successMsg"></div>
+      </div>
+      <div id="readonlyBlock" class="readonly-note" style="display:none;">
+        Only the Owner or this project's Lead can manage members.
+      </div>
+
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr></thead>
+        <tbody id="memberRows"></tbody>
+      </table>
+      <div class="empty-row" id="emptyMembers" style="display:none;">No members yet.</div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://aivndpvohshautonthvl.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_7gxqWOylDt8Yo1Ct8RMZGg_E-bV4795";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const params = new URLSearchParams(window.location.search);
+  const projectId = params.get('id');
+
+  let me = null;
+  let canManage = false;
+
+  function clearMsgs(){
+    document.getElementById('errorMsg').classList.remove('show');
+    document.getElementById('successMsg').classList.remove('show');
+  }
+  function showError(t){ clearMsgs(); const e=document.getElementById('errorMsg'); e.textContent=t; e.classList.add('show'); }
+  function showSuccess(t){ clearMsgs(); const s=document.getElementById('successMsg'); s.textContent=t; s.classList.add('show'); }
+
+  document.getElementById('roleSelect').addEventListener('change', (e) => {
+    document.getElementById('customRole').style.display = e.target.value === '__custom' ? 'inline-block' : 'none';
+  });
+
+  async function loadProject(){
+    const { data: p, error } = await sb.from('projects').select('*').eq('id', projectId).single();
+    if(error || !p){
+      document.getElementById('loadingGate').style.display = 'none';
+      document.getElementById('deniedGate').style.display = 'block';
+      return false;
+    }
+    document.getElementById('projName').textContent = p.name;
+    document.getElementById('projDesc').textContent = p.description || 'No description yet.';
+    const statusEl = document.getElementById('projStatus');
+    statusEl.textContent = p.status.replace('_',' ');
+    statusEl.className = 'pill status-' + p.status;
+    return true;
+  }
+
+  async function loadMembers(){
+    const { data, error } = await sb
+      .from('project_members')
+      .select('id, role_in_project, users(id, name, email)')
+      .eq('project_id', projectId);
+
+    const rows = document.getElementById('memberRows');
+    const empty = document.getElementById('emptyMembers');
+    rows.innerHTML = '';
+
+    if(error || !data || data.length === 0){
+      empty.style.display = 'block';
+      return [];
+    }
+    empty.style.display = 'none';
+
+    data.forEach(row => {
+      const u = row.users;
+      if(!u) return;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${u.name}</td>
+        <td class="sub">${u.email}</td>
+        <td>${row.role_in_project}</td>
+        <td>${canManage ? `<button class="btn-remove" data-mid="${row.id}">Remove</button>` : ''}</td>
+      `;
+      rows.appendChild(tr);
+    });
+
+    if(canManage){
+      document.querySelectorAll('.btn-remove').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          if(!confirm('Remove this member from the project?')) return;
+          const { error } = await sb.from('project_members').delete().eq('id', e.target.getAttribute('data-mid'));
+          if(error){ showError('Could not remove: ' + error.message); return; }
+          showSuccess('Member removed.');
+          loadMembers().then(populateMemberDropdown);
+        });
+      });
+    }
+
+    return data.map(r => r.users && r.users.id).filter(Boolean);
+  }
+
+  async function populateMemberDropdown(existingIds){
+    const { data: allUsers } = await sb.from('users').select('id,name,email').order('name');
+    const select = document.getElementById('memberSelect');
+    select.innerHTML = '<option value="">Select a person…</option>';
+    (allUsers || []).forEach(u => {
+      if(existingIds.includes(u.id)) return;
+      const opt = document.createElement('option');
+      opt.value = u.id;
+      opt.textContent = `${u.name} (${u.email})`;
+      select.appendChild(opt);
+    });
+  }
+
+  document.getElementById('addMemberBtn').addEventListener('click', async () => {
+    clearMsgs();
+    const userId = document.getElementById('memberSelect').value;
+    const roleSelect = document.getElementById('roleSelect').value;
+    const role = roleSelect === '__custom'
+      ? document.getElementById('customRole').value.trim()
+      : roleSelect;
+
+    if(!userId){ showError('Choose a person to add.'); return; }
+    if(!role){ showError('Choose or enter a role.'); return; }
+
+    const btn = document.getElementById('addMemberBtn');
+    btn.disabled = true;
+    const { error } = await sb.from('project_members').insert({
+      project_id: projectId, user_id: userId, role_in_project: role
+    });
+    btn.disabled = false;
+
+    if(error){ showError('Could not add: ' + error.message); return; }
+    showSuccess('Member added.');
+    document.getElementById('customRole').value = '';
+    loadMembers().then(populateMemberDropdown);
+  });
+
+  document.getElementById('signOutBtn').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    window.location.href = 'index.html';
+  });
+
+  (async function init(){
+    if(!projectId){
+      window.location.href = 'dashboard.html';
+      return;
+    }
+
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session){
+      window.location.href = 'index.html';
+      return;
+    }
+
+    const { data: userRow, error } = await sb
+      .from('users').select('id,name,email,is_owner').eq('id', session.user.id).single();
+    if(error || !userRow){
+      window.location.href = 'index.html';
+      return;
+    }
+    me = userRow;
+    document.getElementById('whoLabel').textContent = me.name + (me.is_owner ? ' · Owner' : '');
+
+    const ok = await loadProject();
+    if(!ok) return;
+
+    // Determine if I can manage members: Owner, or my role on this project is Lead
+    let myRole = null;
+    if(!me.is_owner){
+      const { data: mrow } = await sb.from('project_members')
+        .select('role_in_project').eq('project_id', projectId).eq('user_id', me.id).maybeSingle();
+      myRole = mrow ? mrow.role_in_project : null;
+      if(!myRole){
+        document.getElementById('loadingGate').style.display = 'none';
+        document.getElementById('deniedGate').style.display = 'block';
+        return;
+      }
+    }
+    canManage = me.is_owner || myRole === 'Lead';
+    document.getElementById('manageBlock').style.display = canManage ? 'block' : 'none';
+    document.getElementById('readonlyBlock').style.display = canManage ? 'none' : 'block';
+
+    document.getElementById('loadingGate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    const existingIds = await loadMembers();
+    if(canManage) populateMemberDropdown(existingIds);
+  })();
+</script>
+</body>
+</html>
