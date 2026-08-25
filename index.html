@@ -333,7 +333,7 @@
   // ---- Supabase connection ----
   const SUPABASE_URL = "https://aivndpvohshautonthvl.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_7gxqWOylDt8Yo1Ct8RMZGg_E-bV4795";
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // ---- Ambient step animation (decorative, not tied to real data) ----
   (function animateSteps(){
@@ -417,12 +417,12 @@
 
     try{
       if(mode === 'signin'){
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await sb.auth.signInWithPassword({ email, password });
         if(error) throw error;
         showSuccess('Signed in — redirecting…');
         // window.location.href = 'dashboard.html'; // wire up once dashboard exists
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await sb.auth.signUp({ email, password });
         if(error) throw error;
         showSuccess('Account created. Check your email to confirm, then sign in.');
       }
@@ -436,7 +436,7 @@
 
   document.getElementById('googleBtn').addEventListener('click', async () => {
     clearMsgs();
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.href }
     });
