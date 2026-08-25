@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Project Monitoring Process</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg-dark:#151A21;
+    --ivory:#F3F1EA;
+    --amber:#C98A3E;
+    --amber-soft: rgba(201,138,62,0.14);
+    --slate:#6B7280;
+    --green:#4C9A72;
+    --red:#B3543A;
+    --line:#E3DFD3;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    background:#FAF9F5;
+    color:#1C2127;
+    min-height:100vh;
+  }
+  header{
+    background:var(--bg-dark);
+    color:var(--ivory);
+    padding:18px 40px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .wordmark{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:17px;
+    display:flex;
+    align-items:center;
+    gap:9px;
+  }
+  .wordmark .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);}
+  .header-right{display:flex; align-items:center; gap:18px;}
+  .header-right a, .header-right button{
+    color:rgba(243,241,234,0.72);
+    font-size:13.5px;
+    text-decoration:none;
+    background:none;
+    border:none;
+    font-family:'Inter',sans-serif;
+    cursor:pointer;
+    padding:0;
+  }
+  .header-right a:hover, .header-right button:hover{color:var(--ivory);}
+  .bell{
+    position:relative;
+    cursor:pointer;
+    font-size:16px;
+  }
+  .bell .badge{
+    position:absolute; top:-6px; right:-9px;
+    background:var(--amber);
+    color:#1C2127;
+    font-size:10px;
+    font-weight:700;
+    border-radius:10px;
+    padding:1px 5px;
+    display:none;
+  }
+  .who{font-size:13px; color:rgba(243,241,234,0.55);}
+
+  main{max-width:920px; margin:0 auto; padding:44px 24px 80px;}
+
+  .idle-card{
+    background:linear-gradient(135deg, #1C2127, #262D36);
+    color:var(--ivory);
+    border-radius:16px;
+    padding:26px 28px;
+    margin-bottom:32px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    display:none;
+  }
+  .idle-card.show{display:flex;}
+  .idle-card .txt{font-size:14px; color:rgba(243,241,234,0.65);}
+  .idle-card .txt strong{display:block; font-size:16px; color:var(--ivory); font-weight:600; margin-bottom:3px;}
+  .btn-idle{
+    background:var(--amber);
+    color:#1C2127;
+    border:none;
+    border-radius:9px;
+    padding:11px 20px;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .btn-idle:hover{filter:brightness(1.06);}
+  .btn-idle:disabled{background:#8A8478; cursor:not-allowed;}
+
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:16px;
+  }
+  .section-head h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:19px;
+    font-weight:600;
+    margin:0;
+  }
+  .btn-new{
+    background:#1C2127;
+    color:var(--ivory);
+    border:none;
+    border-radius:8px;
+    padding:9px 16px;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .btn-new:hover{background:#282f38;}
+
+  .projects-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+    gap:14px;
+    margin-bottom:44px;
+  }
+  .project-card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:13px;
+    padding:20px;
+  }
+  .project-card .pname{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15.5px; margin:0 0 6px;}
+  .project-card .pdesc{color:var(--slate); font-size:13px; line-height:1.5; margin:0 0 14px; min-height:20px;}
+  .pill-row{display:flex; gap:6px; flex-wrap:wrap;}
+  .pill{
+    font-size:11px;
+    font-weight:600;
+    padding:3px 9px;
+    border-radius:20px;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+  }
+  .pill.status-active{background:var(--amber-soft); color:#8B5D24;}
+  .pill.status-on_hold{background:#EFEDE5; color:var(--slate);}
+  .pill.status-done{background:#E9F3EE; color:#2E6A4B;}
+  .pill.role{background:#EFF1F4; color:#3A4049;}
+
+  .empty-state{
+    color:var(--slate);
+    font-size:14px;
+    background:#fff;
+    border:1.5px dashed var(--line);
+    border-radius:13px;
+    padding:32px;
+    text-align:center;
+    margin-bottom:44px;
+  }
+
+  .notif-list{background:#fff; border:1px solid var(--line); border-radius:13px; overflow:hidden;}
+  .notif-row{
+    padding:14px 20px;
+    border-bottom:1px solid #EFEDE5;
+    font-size:13.5px;
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .notif-row:last-child{border-bottom:none;}
+  .notif-row.unread{background:#FBF8F2;}
+  .notif-row .msg{flex:1;}
+  .notif-row .when{color:var(--slate); font-size:11.5px; white-space:nowrap; padding-top:1px;}
+  .notif-empty{color:var(--slate); font-size:13.5px; padding:20px; text-align:center;}
+
+  /* New project modal */
+  .modal-backdrop{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(21,26,33,0.5);
+    align-items:center;
+    justify-content:center;
+    z-index:20;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal{
+    background:#fff;
+    border-radius:14px;
+    padding:28px;
+    width:100%;
+    max-width:420px;
+  }
+  .modal h3{font-family:'Space Grotesk',sans-serif; font-size:18px; margin:0 0 18px;}
+  .modal label{display:block; font-size:13px; font-weight:500; margin-bottom:6px;}
+  .modal input, .modal textarea{
+    width:100%;
+    padding:10px 13px;
+    border-radius:8px;
+    border:1.5px solid var(--line);
+    background:#FBFAF6;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    margin-bottom:16px;
+    outline:none;
+  }
+  .modal input:focus, .modal textarea:focus{border-color:var(--amber); background:#fff;}
+  .modal-actions{display:flex; justify-content:flex-end; gap:10px;}
+  .btn-cancel{background:none; border:none; color:var(--slate); font-size:14px; cursor:pointer; padding:10px 14px;}
+  .btn-create{background:#1C2127; color:var(--ivory); border:none; border-radius:8px; padding:10px 18px; font-weight:600; font-size:14px; cursor:pointer;}
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:#1C2127; color:var(--ivory);
+    padding:12px 20px; border-radius:9px;
+    font-size:13.5px;
+    display:none;
+    z-index:30;
+  }
+  .toast.show{display:block;}
+
+  .gate{max-width:420px; margin:120px auto; text-align:center; color:var(--slate); font-size:14.5px;}
+  #app{display:none;}
+</style>
+</head>
+<body>
+
+<div id="loadingGate" class="gate">Loading your workspace…</div>
+
+<div id="app">
+  <header>
+    <div class="wordmark"><span class="dot"></span>Project Monitoring Process</div>
+    <div class="header-right">
+      <div class="bell" id="bellIcon">🔔<span class="badge" id="notifBadge">0</span></div>
+      <a href="owner-settings.html" id="ownerLink" style="display:none;">Owner Settings</a>
+      <button id="signOutBtn">Sign out</button>
+      <span class="who" id="whoLabel"></span>
+    </div>
+  </header>
+
+  <main>
+    <div class="idle-card" id="idleCard">
+      <div class="txt">
+        <strong id="idlePhrase">Give Me Something to Do</strong>
+        You have no active tasks assigned right now.
+      </div>
+      <button class="btn-idle" id="idleBtn">Notify Owner</button>
+    </div>
+
+    <div class="section-head">
+      <h2>Your Projects</h2>
+      <button class="btn-new" id="newProjectBtn" style="display:none;">+ New Project</button>
+    </div>
+    <div class="projects-grid" id="projectsGrid"></div>
+    <div class="empty-state" id="projectsEmpty" style="display:none;">You're not part of any projects yet.</div>
+
+    <div class="section-head">
+      <h2>Notifications</h2>
+    </div>
+    <div class="notif-list" id="notifList"></div>
+  </main>
+</div>
+
+<!-- New Project Modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3>New project</h3>
+    <label for="newProjName">Name</label>
+    <input type="text" id="newProjName" placeholder="e.g. Q4 Supply Restock">
+    <label for="newProjDesc">Description (optional)</label>
+    <textarea id="newProjDesc" rows="3" placeholder="What is this project about?"></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modalCancel">Cancel</button>
+      <button class="btn-create" id="modalCreate">Create project</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const SUPABASE_URL = "https://aivndpvohshautonthvl.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_7gxqWOylDt8Yo1Ct8RMZGg_E-bV4795";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const IDLE_PHRASES = [
+    "Send Tasks, I'm Bored","Idle and Judging Everyone","Give Me Something to Do",
+    "Currently a Professional Idler","Feed Me a Task","Unemployed (Temporarily, I Hope)",
+    "My Hands Are Empty, Boss","Bored. Send Work Immediately.","Task-less and Not Proud of It",
+    "I've Achieved Nirvana (No Tasks)","Send Help, I'm Bored","Assign Me Before I Get Ideas",
+    "Warning: Idle Hands at Work","Currently Doing Absolutely Nothing","This Silence Is Not Productive",
+    "Send Work Before I Reorganize the Office","Achievement Unlocked: Total Boredom",
+    "My Calendar Is Suspiciously Empty","Running on Zero Tasks, Full Sarcasm","Send a Task. Any Task. Please."
+  ];
+
+  let me = null; // { id, name, email, is_owner }
+  let ownerRows = [];
+
+  function showToast(text){
+    const t = document.getElementById('toast');
+    t.textContent = text;
+    t.classList.add('show');
+    setTimeout(()=> t.classList.remove('show'), 3200);
+  }
+
+  function timeAgo(iso){
+    const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+    if(diff < 60) return 'just now';
+    if(diff < 3600) return Math.floor(diff/60) + 'm ago';
+    if(diff < 86400) return Math.floor(diff/3600) + 'h ago';
+    return Math.floor(diff/86400) + 'd ago';
+  }
+
+  async function loadProjects(){
+    const { data, error } = await sb
+      .from('project_members')
+      .select('role_in_project, projects(id, name, description, status)')
+      .eq('user_id', me.id);
+
+    const grid = document.getElementById('projectsGrid');
+    const empty = document.getElementById('projectsEmpty');
+    grid.innerHTML = '';
+
+    let rows = data || [];
+
+    // Owner also sees projects they created but aren't formally a member of
+    if(me.is_owner){
+      const { data: allProjects } = await sb.from('projects').select('id,name,description,status');
+      const memberIds = new Set(rows.map(r => r.projects && r.projects.id));
+      (allProjects || []).forEach(p => {
+        if(!memberIds.has(p.id)){
+          rows.push({ role_in_project: 'Owner', projects: p });
+        }
+      });
+    }
+
+    if(error || rows.length === 0){
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    rows.forEach(row => {
+      const p = row.projects;
+      if(!p) return;
+      const card = document.createElement('div');
+      card.className = 'project-card';
+      card.innerHTML = `
+        <p class="pname">${p.name}</p>
+        <p class="pdesc">${p.description || 'No description yet.'}</p>
+        <div class="pill-row">
+          <span class="pill status-${p.status}">${p.status.replace('_',' ')}</span>
+          <span class="pill role">${row.role_in_project}</span>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  async function loadNotifications(){
+    const { data, error } = await sb
+      .from('notifications')
+      .select('*')
+      .eq('user_id', me.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    const list = document.getElementById('notifList');
+    const badge = document.getElementById('notifBadge');
+    list.innerHTML = '';
+
+    if(error || !data || data.length === 0){
+      list.innerHTML = '<div class="notif-empty">No notifications yet.</div>';
+      badge.style.display = 'none';
+      return;
+    }
+
+    const unreadCount = data.filter(n => !n.is_read).length;
+    if(unreadCount > 0){
+      badge.textContent = unreadCount;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+
+    data.forEach(n => {
+      const row = document.createElement('div');
+      row.className = 'notif-row' + (n.is_read ? '' : ' unread');
+      row.innerHTML = `<div class="msg">${n.message}</div><div class="when">${timeAgo(n.created_at)}</div>`;
+      row.addEventListener('click', async () => {
+        if(!n.is_read){
+          await sb.from('notifications').update({ is_read: true }).eq('id', n.id);
+          loadNotifications();
+        }
+      });
+      list.appendChild(row);
+    });
+  }
+
+  async function checkIdleState(){
+    const { count } = await sb
+      .from('cards')
+      .select('id', { count: 'exact', head: true })
+      .eq('assignee_id', me.id)
+      .is('completed_at', null);
+
+    const idleCard = document.getElementById('idleCard');
+    if(!count || count === 0){
+      const phrase = IDLE_PHRASES[Math.floor(Math.random() * IDLE_PHRASES.length)];
+      document.getElementById('idlePhrase').textContent = phrase;
+      idleCard.classList.add('show');
+    } else {
+      idleCard.classList.remove('show');
+    }
+  }
+
+  document.getElementById('idleBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('idleBtn');
+    btn.disabled = true;
+
+    // Cooldown check: has this user sent an idle ping in the last 24h?
+    const since = new Date(Date.now() - 24*60*60*1000).toISOString();
+    const { data: recent } = await sb
+      .from('notifications')
+      .select('id')
+      .eq('from_user_id', me.id)
+      .eq('type', 'idle_ping')
+      .gt('created_at', since)
+      .limit(1);
+
+    if(recent && recent.length > 0){
+      showToast("Already sent today — sit tight.");
+      btn.disabled = false;
+      return;
+    }
+
+    if(ownerRows.length === 0){
+      showToast("No owner found to notify.");
+      btn.disabled = false;
+      return;
+    }
+
+    const message = `${me.name} has no active tasks assigned.`;
+    const inserts = ownerRows.map(o => ({
+      user_id: o.id,
+      from_user_id: me.id,
+      message,
+      type: 'idle_ping'
+    }));
+    const { error } = await sb.from('notifications').insert(inserts);
+    btn.disabled = false;
+    if(error){
+      showToast("Couldn't send — try again.");
+    } else {
+      showToast("Sent. The Owner has been notified.");
+    }
+  });
+
+  // ---- New project modal (Owner only) ----
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  document.getElementById('newProjectBtn').addEventListener('click', () => {
+    modalBackdrop.classList.add('show');
+  });
+  document.getElementById('modalCancel').addEventListener('click', () => {
+    modalBackdrop.classList.remove('show');
+  });
+  document.getElementById('modalCreate').addEventListener('click', async () => {
+    const name = document.getElementById('newProjName').value.trim();
+    const description = document.getElementById('newProjDesc').value.trim();
+    if(!name){ showToast("Give the project a name."); return; }
+
+    const { error } = await sb.from('projects').insert({
+      name, description: description || null, created_by: me.id
+    });
+    if(error){ showToast("Couldn't create project: " + error.message); return; }
+
+    document.getElementById('newProjName').value = '';
+    document.getElementById('newProjDesc').value = '';
+    modalBackdrop.classList.remove('show');
+    showToast("Project created.");
+    loadProjects();
+  });
+
+  document.getElementById('signOutBtn').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    window.location.href = 'index.html';
+  });
+
+  document.getElementById('bellIcon').addEventListener('click', () => {
+    document.getElementById('notifList').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // ---- Init / access gate ----
+  (async function init(){
+    const { data: { session } } = await sb.auth.getSession();
+    if(!session){
+      window.location.href = 'index.html';
+      return;
+    }
+
+    const { data: userRow, error } = await sb
+      .from('users')
+      .select('id,name,email,is_owner')
+      .eq('id', session.user.id)
+      .single();
+
+    if(error || !userRow){
+      window.location.href = 'index.html';
+      return;
+    }
+
+    me = userRow;
+    document.getElementById('whoLabel').textContent = me.name + (me.is_owner ? ' · Owner' : '');
+    if(me.is_owner){
+      document.getElementById('ownerLink').style.display = 'inline';
+      document.getElementById('newProjectBtn').style.display = 'inline-block';
+    }
+
+    const { data: owners } = await sb.from('users').select('id').eq('is_owner', true);
+    ownerRows = owners || [];
+
+    document.getElementById('loadingGate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    loadProjects();
+    loadNotifications();
+    checkIdleState();
+  })();
+</script>
+</body>
+</html>
