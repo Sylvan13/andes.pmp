@@ -393,7 +393,7 @@
       const { error } = await sb.auth.signInWithPassword({ email, password });
       if(error) throw error;
       showSuccess('Signed in — redirecting…');
-      // window.location.href = 'dashboard.html'; // wire up once dashboard exists
+      window.location.href = 'dashboard.html';
     } catch(err){
       showError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -428,7 +428,7 @@
       showError('This Google account isn\u2019t authorized. Ask your workspace owner to add ' + email + ' to the allowed list.');
     } else {
       showSuccess('Signed in — redirecting…');
-      // window.location.href = 'dashboard.html'; // wire up once dashboard exists
+      window.location.href = 'dashboard.html';
     }
   })();
 </script>
