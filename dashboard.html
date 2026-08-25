@@ -429,7 +429,7 @@
     btn.disabled = true;
 
     // Cooldown check: has this user sent an idle ping in the last 24h?
-    const since = new Date(Date.now() - 24*60*60*1000).toISOString();
+    const since = new Date(Date.now() - 2*60*60*1000).toISOString();
     const { data: recent } = await sb
       .from('notifications')
       .select('id')
@@ -439,7 +439,7 @@
       .limit(1);
 
     if(recent && recent.length > 0){
-      showToast("Already sent today — sit tight.");
+      showToast("Already sent recently — try again in a bit.");
       btn.disabled = false;
       return;
     }
@@ -463,6 +463,7 @@
       showToast("Couldn't send — try again.");
     } else {
       showToast("Sent. The Owner has been notified.");
+      loadNotifications();
     }
   });
 
