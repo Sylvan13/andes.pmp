@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Progress Board — Sign in</title>
+<title>Project Monitoring Process — Sign in</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -273,7 +273,7 @@
 <body>
 
   <div class="brand-panel">
-    <div class="wordmark"><span class="dot"></span>Progress Board</div>
+    <div class="wordmark"><span class="dot"></span>Project Monitoring Process</div>
 
     <div>
       <div class="brand-copy">
@@ -292,7 +292,7 @@
       </div>
     </div>
 
-    <div class="foot-note">Sylvan · Namora</div>
+    <div class="foot-note">Created by Sylvan · ANDES</div>
   </div>
 
   <div class="form-panel">
@@ -343,8 +343,9 @@
     function step(){
       if(i > 0) nodes[i-1].classList.remove('active');
       if(i < nodes.length){
-        fills[i].style.width = '100%';
-        setTimeout(()=>{ nodes[i].classList.add('active'); }, 550);
+        const idx = i;
+        fills[idx].style.width = '100%';
+        setTimeout(()=>{ nodes[idx].classList.add('active'); }, 550);
       }
       i++;
       if(i > nodes.length){
