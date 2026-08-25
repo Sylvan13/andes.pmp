@@ -16,7 +16,9 @@
     --amber-soft: rgba(201,138,62,0.14);
     --slate:#6B7280;
     --green:#4C9A72;
+    --green-soft: rgba(76,154,114,0.14);
     --red:#B3543A;
+    --red-soft: rgba(179,84,58,0.10);
     --line:#E3DFD3;
   }
   *{box-sizing:border-box;}
@@ -59,7 +61,7 @@
   .header-right a:hover, .header-right button:hover{color:var(--ivory);}
   .who{font-size:13px; color:rgba(243,241,234,0.55);}
 
-  main{max-width:820px; margin:0 auto; padding:44px 24px 80px;}
+  main{max-width:1040px; margin:0 auto; padding:44px 24px 80px;}
 
   .back-link{
     display:inline-flex; align-items:center; gap:6px;
@@ -68,7 +70,7 @@
   }
   .back-link:hover{color:#1C2127;}
 
-  .project-head{margin-bottom:36px;}
+  .project-head{margin-bottom:36px; display:flex; justify-content:space-between; align-items:flex-start; gap:20px;}
   .project-head h1{
     font-family:'Space Grotesk',sans-serif;
     font-size:26px; font-weight:700;
@@ -80,10 +82,25 @@
     font-size:11px; font-weight:600;
     padding:3px 10px; border-radius:20px;
     text-transform:uppercase; letter-spacing:0.03em;
+    display:inline-block;
   }
   .pill.status-active{background:var(--amber-soft); color:#8B5D24;}
   .pill.status-on_hold{background:#EFEDE5; color:var(--slate);}
   .pill.status-done{background:#E9F3EE; color:#2E6A4B;}
+  .pill.pending{background:var(--amber-soft); color:#8B5D24;}
+  .pill.done{background:var(--green-soft); color:#2E6A4B;}
+
+  .tabs{display:flex; gap:4px; margin-bottom:26px; border-bottom:1.5px solid var(--line);}
+  .tab-btn{
+    background:none; border:none; padding:10px 16px;
+    font-family:'Inter',sans-serif; font-size:14px; font-weight:500;
+    color:var(--slate); cursor:pointer;
+    border-bottom:2px solid transparent;
+    margin-bottom:-1.5px;
+  }
+  .tab-btn.active{color:#1C2127; border-bottom-color:var(--amber); font-weight:600;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
 
   .card{
     background:#fff;
@@ -95,8 +112,8 @@
   .card h2{font-family:'Space Grotesk',sans-serif; font-size:16.5px; font-weight:600; margin:0 0 4px;}
   .card .desc{color:var(--slate); font-size:13.5px; margin:0 0 20px;}
 
-  .add-row{display:flex; gap:10px; margin-bottom:6px; flex-wrap:wrap;}
-  select, input[type=text]{
+  .add-row{display:flex; gap:10px; margin-bottom:6px; flex-wrap:wrap; align-items:flex-start;}
+  select, input[type=text], input[type=date], textarea{
     padding:10px 13px;
     border-radius:8px;
     border:1.5px solid var(--line);
@@ -105,7 +122,7 @@
     font-size:14px;
     outline:none;
   }
-  select:focus, input:focus{border-color:var(--amber); background:#fff;}
+  select:focus, input:focus, textarea:focus{border-color:var(--amber); background:#fff;}
   #memberSelect{flex:1.3; min-width:180px;}
   #roleSelect{flex:1; min-width:140px;}
   #customRole{flex:1; min-width:140px; display:none;}
@@ -116,6 +133,11 @@
   }
   .btn-add:hover{background:#282f38;}
   .btn-add:disabled{background:#B7BCC2; cursor:not-allowed;}
+  .btn-secondary{
+    padding:9px 15px; border-radius:8px; border:1.5px solid var(--line);
+    background:#fff; color:#1C2127; font-weight:600; font-size:13.5px; cursor:pointer;
+  }
+  .btn-secondary:hover{border-color:#C7C2B3;}
 
   table{width:100%; border-collapse:collapse; margin-top:20px;}
   th{
@@ -141,6 +163,94 @@
     background:#F3F1EA; border-radius:10px; padding:14px 16px;
     font-size:13px; color:var(--slate);
   }
+
+  /* ---- Pipeline / steps ---- */
+  .step-list{display:flex; flex-direction:column; gap:8px; margin-top:20px;}
+  .step-row{
+    display:flex; align-items:center; gap:12px;
+    background:#FBFAF6; border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px;
+  }
+  .step-num{
+    width:24px; height:24px; border-radius:50%; background:#1C2127; color:var(--ivory);
+    font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .step-info{flex:1; min-width:0;}
+  .step-info .sname{font-weight:600; font-size:14px;}
+  .step-info .smeta{color:var(--slate); font-size:12px; margin-top:2px;}
+  .step-actions{display:flex; gap:4px; flex-shrink:0;}
+  .icon-btn{
+    background:none; border:1px solid var(--line); border-radius:6px;
+    width:28px; height:28px; cursor:pointer; font-size:13px; color:#1C2127;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:hover{background:#F0EEE6;}
+  .icon-btn:disabled{opacity:0.3; cursor:not-allowed;}
+
+  .step-form{
+    display:grid; grid-template-columns:1fr 1fr; gap:12px;
+    background:#FBFAF6; border:1px dashed var(--line); border-radius:10px;
+    padding:16px; margin-top:14px;
+  }
+  .step-form .full{grid-column:1/-1;}
+  .step-form label{font-size:12px; font-weight:500; color:#3A4049; display:block; margin-bottom:4px;}
+  .step-form select, .step-form input{width:100%;}
+  .checkbox-row{display:flex; align-items:center; gap:8px; grid-column:1/-1;}
+  .checkbox-row input{width:auto;}
+
+  /* ---- Cards board ---- */
+  .board{display:flex; gap:16px; overflow-x:auto; padding-bottom:8px;}
+  .board-col{
+    background:#F3F1EA; border-radius:12px; padding:14px;
+    min-width:250px; flex-shrink:0;
+  }
+  .board-col-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:12px; padding:0 2px;
+  }
+  .board-col-head .cname{font-weight:600; font-size:13.5px;}
+  .board-col-head .ccount{
+    background:#fff; border-radius:10px; font-size:11px; font-weight:600;
+    padding:1px 8px; color:var(--slate);
+  }
+  .task-card{
+    background:#fff; border:1px solid var(--line); border-radius:10px;
+    padding:13px; margin-bottom:10px; cursor:pointer;
+  }
+  .task-card:hover{border-color:#C7C2B3;}
+  .task-card .tname{font-weight:600; font-size:13.5px; margin-bottom:6px;}
+  .task-card .tmeta{display:flex; justify-content:space-between; align-items:center; font-size:11.5px; color:var(--slate);}
+  .board-empty{color:var(--slate); font-size:12.5px; padding:10px 2px;}
+
+  /* ---- Modals ---- */
+  .modal-backdrop{
+    display:none; position:fixed; inset:0; background:rgba(21,26,33,0.5);
+    align-items:center; justify-content:center; z-index:20; padding:20px;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal{background:#fff; border-radius:14px; padding:28px; width:100%; max-width:460px; max-height:88vh; overflow-y:auto;}
+  .modal h3{font-family:'Space Grotesk',sans-serif; font-size:18px; margin:0 0 18px;}
+  .modal label{display:block; font-size:13px; font-weight:500; margin-bottom:6px; margin-top:14px;}
+  .modal label:first-of-type{margin-top:0;}
+  .modal input, .modal textarea, .modal select{width:100%;}
+  .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:22px;}
+  .btn-cancel{background:none; border:none; color:var(--slate); font-size:14px; cursor:pointer; padding:10px 14px;}
+  .btn-create{background:#1C2127; color:var(--ivory); border:none; border-radius:8px; padding:10px 18px; font-weight:600; font-size:14px; cursor:pointer;}
+  .btn-approve{background:var(--green); color:#fff; border:none; border-radius:8px; padding:10px 16px; font-weight:600; font-size:14px; cursor:pointer;}
+  .btn-reject{background:none; color:var(--red); border:1.5px solid var(--red); border-radius:8px; padding:9px 15px; font-weight:600; font-size:14px; cursor:pointer;}
+
+  .detail-meta{font-size:13px; color:var(--slate); margin-bottom:4px;}
+  .detail-desc{font-size:13.5px; line-height:1.6; margin:14px 0; white-space:pre-wrap;}
+  .history-item{font-size:12.5px; color:var(--slate); padding:6px 0; border-bottom:1px solid #EFEDE5;}
+  .history-item:last-child{border-bottom:none;}
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:#1C2127; color:var(--ivory); padding:12px 20px; border-radius:9px;
+    font-size:13.5px; display:none; z-index:30;
+  }
+  .toast.show{display:block;}
 
   .gate{max-width:420px; margin:120px auto; text-align:center; color:var(--slate); font-size:14.5px;}
   .gate a{color:var(--amber); font-weight:600; text-decoration:none;}
@@ -169,44 +279,160 @@
     <a href="dashboard.html" class="back-link">← Back to dashboard</a>
 
     <div class="project-head">
-      <h1 id="projName">—</h1>
-      <p class="desc" id="projDesc"></p>
-      <span class="pill" id="projStatus"></span>
+      <div>
+        <h1 id="projName">—</h1>
+        <p class="desc" id="projDesc"></p>
+        <span class="pill" id="projStatus"></span>
+      </div>
+      <button class="btn-add" id="newCardBtn" style="display:none;">+ New Card</button>
     </div>
 
-    <div class="card">
-      <h2>Members</h2>
-      <p class="desc">People with access to this project and their role here.</p>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="board">Board</button>
+      <button class="tab-btn" data-tab="pipeline">Pipeline</button>
+      <button class="tab-btn" data-tab="members">Members</button>
+    </div>
 
-      <div id="manageBlock">
-        <div class="add-row">
-          <select id="memberSelect"><option value="">Select a person…</option></select>
-          <select id="roleSelect">
-            <option value="Lead">Lead</option>
-            <option value="Admin">Admin</option>
-            <option value="Finance">Finance</option>
-            <option value="Member">Member</option>
-            <option value="Viewer">Viewer</option>
-            <option value="__custom">Custom…</option>
-          </select>
-          <input type="text" id="customRole" placeholder="Role name">
-          <button class="btn-add" id="addMemberBtn">Add</button>
+    <!-- BOARD -->
+    <div class="tab-panel active" id="tab-board">
+      <div class="board" id="board"></div>
+      <div class="board-empty" id="boardEmptyNoSteps" style="display:none;">
+        No pipeline steps yet — set one up in the Pipeline tab before adding cards.
+      </div>
+    </div>
+
+    <!-- PIPELINE -->
+    <div class="tab-panel" id="tab-pipeline">
+      <div class="card">
+        <h2>Pipeline</h2>
+        <p class="desc">The sequence of steps every card in this project moves through.</p>
+
+        <div id="stepList" class="step-list"></div>
+        <div class="empty-row" id="emptySteps" style="display:none;">No steps defined yet.</div>
+
+        <div id="stepManageBlock" style="display:none;">
+          <button class="btn-secondary" id="addStepToggle" style="margin-top:16px;">+ Add step</button>
+          <div class="step-form" id="stepForm" style="display:none;">
+            <div class="full">
+              <label>Step name</label>
+              <input type="text" id="stepName" placeholder="e.g. Finance drafts quotation">
+            </div>
+            <div>
+              <label>Responsible role</label>
+              <input type="text" id="stepResponsible" placeholder="e.g. Finance">
+            </div>
+            <div>
+              <label>Rejectable by</label>
+              <input type="text" id="stepRejectableBy" placeholder="e.g. Lead">
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="stepRequiresApproval">
+              <label style="margin:0;">Requires approval before moving on</label>
+            </div>
+            <div id="approverFields" class="full" style="display:none;">
+              <label>Approver type</label>
+              <select id="approverType">
+                <option value="role">Anyone with a role</option>
+                <option value="specific_person">A specific person</option>
+              </select>
+            </div>
+            <div id="approverRoleField" class="full" style="display:none;">
+              <label>Approver role</label>
+              <input type="text" id="approverRole" placeholder="e.g. Finance Head">
+            </div>
+            <div id="approverPersonField" class="full" style="display:none;">
+              <label>Approver</label>
+              <select id="approverPerson"></select>
+            </div>
+            <div class="full" style="display:flex; gap:10px; justify-content:flex-end;">
+              <button class="btn-cancel" id="stepFormCancel">Cancel</button>
+              <button class="btn-create" id="stepFormSave">Add step</button>
+            </div>
+          </div>
         </div>
-        <div class="msg error" id="errorMsg"></div>
-        <div class="msg success" id="successMsg"></div>
+        <div id="stepReadonlyNote" class="readonly-note" style="margin-top:16px; display:none;">
+          Only the Owner or this project's Lead can edit the pipeline.
+        </div>
       </div>
-      <div id="readonlyBlock" class="readonly-note" style="display:none;">
-        Only the Owner or this project's Lead can manage members.
-      </div>
+    </div>
 
-      <table>
-        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr></thead>
-        <tbody id="memberRows"></tbody>
-      </table>
-      <div class="empty-row" id="emptyMembers" style="display:none;">No members yet.</div>
+    <!-- MEMBERS -->
+    <div class="tab-panel" id="tab-members">
+      <div class="card">
+        <h2>Members</h2>
+        <p class="desc">People with access to this project and their role here.</p>
+
+        <div id="manageBlock">
+          <div class="add-row">
+            <select id="memberSelect"><option value="">Select a person…</option></select>
+            <select id="roleSelect">
+              <option value="Lead">Lead</option>
+              <option value="Admin">Admin</option>
+              <option value="Finance">Finance</option>
+              <option value="Member">Member</option>
+              <option value="Viewer">Viewer</option>
+              <option value="__custom">Custom…</option>
+            </select>
+            <input type="text" id="customRole" placeholder="Role name">
+            <button class="btn-add" id="addMemberBtn">Add</button>
+          </div>
+          <div class="msg error" id="errorMsg"></div>
+          <div class="msg success" id="successMsg"></div>
+        </div>
+        <div id="readonlyBlock" class="readonly-note" style="display:none;">
+          Only the Owner or this project's Lead can manage members.
+        </div>
+
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr></thead>
+          <tbody id="memberRows"></tbody>
+        </table>
+        <div class="empty-row" id="emptyMembers" style="display:none;">No members yet.</div>
+      </div>
     </div>
   </main>
 </div>
+
+<!-- New Card Modal -->
+<div class="modal-backdrop" id="cardModalBackdrop">
+  <div class="modal">
+    <h3>New card</h3>
+    <label>Title</label>
+    <input type="text" id="newCardTitle" placeholder="e.g. Q4 quotation for Client X">
+    <label>Description</label>
+    <textarea id="newCardDesc" rows="3" placeholder="Details, context, links…"></textarea>
+    <label>Assignee</label>
+    <select id="newCardAssignee"></select>
+    <label>Deadline (optional)</label>
+    <input type="date" id="newCardDeadline">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="cardModalCancel">Cancel</button>
+      <button class="btn-create" id="cardModalCreate">Create card</button>
+    </div>
+  </div>
+</div>
+
+<!-- Card Detail Modal -->
+<div class="modal-backdrop" id="detailModalBackdrop">
+  <div class="modal" id="detailModalContent"></div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal-backdrop" id="rejectModalBackdrop">
+  <div class="modal">
+    <h3>Send back for revision</h3>
+    <label>Send back to which step?</label>
+    <select id="rejectToStep"></select>
+    <label>Reason</label>
+    <textarea id="rejectNote" rows="3" placeholder="What needs to change?"></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="rejectModalCancel">Cancel</button>
+      <button class="btn-reject" id="rejectModalConfirm">Send back</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
   const SUPABASE_URL = "https://aivndpvohshautonthvl.supabase.co";
@@ -218,13 +444,32 @@
 
   let me = null;
   let canManage = false;
+  let projectMembers = [];
+  let steps = [];
+  let cardsCache = [];
+  let currentDetailCard = null;
 
+  function showToast(t){
+    const el = document.getElementById('toast');
+    el.textContent = t;
+    el.classList.add('show');
+    setTimeout(()=> el.classList.remove('show'), 3200);
+  }
   function clearMsgs(){
     document.getElementById('errorMsg').classList.remove('show');
     document.getElementById('successMsg').classList.remove('show');
   }
   function showError(t){ clearMsgs(); const e=document.getElementById('errorMsg'); e.textContent=t; e.classList.add('show'); }
   function showSuccess(t){ clearMsgs(); const s=document.getElementById('successMsg'); s.textContent=t; s.classList.add('show'); }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.getAttribute('data-tab')).classList.add('active');
+    });
+  });
 
   document.getElementById('roleSelect').addEventListener('change', (e) => {
     document.getElementById('customRole').style.display = e.target.value === '__custom' ? 'inline-block' : 'none';
@@ -254,6 +499,7 @@
     const rows = document.getElementById('memberRows');
     const empty = document.getElementById('emptyMembers');
     rows.innerHTML = '';
+    projectMembers = [];
 
     if(error || !data || data.length === 0){
       empty.style.display = 'block';
@@ -264,6 +510,7 @@
     data.forEach(row => {
       const u = row.users;
       if(!u) return;
+      projectMembers.push({ id: row.id, role_in_project: row.role_in_project, user: u });
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${u.name}</td>
@@ -323,7 +570,378 @@
     if(error){ showError('Could not add: ' + error.message); return; }
     showSuccess('Member added.');
     document.getElementById('customRole').value = '';
-    loadMembers().then(populateMemberDropdown);
+    loadMembers().then((ids) => { populateMemberDropdown(ids); populateAssigneeSelects(); });
+  });
+
+  function stepSummary(s){
+    let bits = [];
+    if(s.responsible_role) bits.push(s.responsible_role);
+    if(s.requires_approval){
+      let who = s.approver_role || 'a role';
+      if(s.approver_type === 'specific_person'){
+        const m = projectMembers.find(mm => mm.user.id === s.approver_user_id);
+        who = m ? m.user.name : 'someone';
+      }
+      bits.push('needs approval from ' + who);
+    }
+    return bits.join(' · ') || 'No details set';
+  }
+
+  async function loadSteps(){
+    const { data, error } = await sb.from('steps').select('*').eq('project_id', projectId).order('order_index');
+    steps = data || [];
+
+    const list = document.getElementById('stepList');
+    const empty = document.getElementById('emptySteps');
+    list.innerHTML = '';
+
+    if(error || steps.length === 0){
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      steps.forEach((s, i) => {
+        const row = document.createElement('div');
+        row.className = 'step-row';
+        row.innerHTML = `
+          <div class="step-num">${i+1}</div>
+          <div class="step-info">
+            <div class="sname">${s.name}</div>
+            <div class="smeta">${stepSummary(s)}</div>
+          </div>
+          ${canManage ? `
+          <div class="step-actions">
+            <button class="icon-btn" data-act="up" data-id="${s.id}" ${i===0?'disabled':''}>↑</button>
+            <button class="icon-btn" data-act="down" data-id="${s.id}" ${i===steps.length-1?'disabled':''}>↓</button>
+            <button class="icon-btn" data-act="del" data-id="${s.id}">✕</button>
+          </div>` : ''}
+        `;
+        list.appendChild(row);
+      });
+
+      if(canManage){
+        list.querySelectorAll('[data-act]').forEach(btn => {
+          btn.addEventListener('click', () => handleStepAction(btn.getAttribute('data-act'), btn.getAttribute('data-id')));
+        });
+      }
+    }
+    renderBoard();
+    return steps;
+  }
+
+  async function handleStepAction(action, stepId){
+    const idx = steps.findIndex(s => s.id === stepId);
+    if(idx === -1) return;
+
+    if(action === 'del'){
+      if(!confirm('Delete this step? Cards currently on it will need to be moved manually.')) return;
+      const { error } = await sb.from('steps').delete().eq('id', stepId);
+      if(error){ showToast('Could not delete: ' + error.message); return; }
+      loadSteps();
+      return;
+    }
+
+    const swapIdx = action === 'up' ? idx - 1 : idx + 1;
+    if(swapIdx < 0 || swapIdx >= steps.length) return;
+    const a = steps[idx], b = steps[swapIdx];
+    await sb.from('steps').update({ order_index: b.order_index }).eq('id', a.id);
+    await sb.from('steps').update({ order_index: a.order_index }).eq('id', b.id);
+    loadSteps();
+  }
+
+  document.getElementById('addStepToggle').addEventListener('click', () => {
+    const form = document.getElementById('stepForm');
+    form.style.display = form.style.display === 'none' ? 'grid' : 'none';
+    populateApproverPersonSelect();
+  });
+  document.getElementById('stepFormCancel').addEventListener('click', () => {
+    document.getElementById('stepForm').style.display = 'none';
+  });
+  document.getElementById('stepRequiresApproval').addEventListener('change', (e) => {
+    document.getElementById('approverFields').style.display = e.target.checked ? 'block' : 'none';
+    document.getElementById('approverType').dispatchEvent(new Event('change'));
+  });
+  document.getElementById('approverType').addEventListener('change', (e) => {
+    document.getElementById('approverRoleField').style.display = e.target.value === 'role' ? 'block' : 'none';
+    document.getElementById('approverPersonField').style.display = e.target.value === 'specific_person' ? 'block' : 'none';
+  });
+
+  function populateApproverPersonSelect(){
+    const sel = document.getElementById('approverPerson');
+    sel.innerHTML = '';
+    projectMembers.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.user.id;
+      opt.textContent = m.user.name + ' (' + m.role_in_project + ')';
+      sel.appendChild(opt);
+    });
+  }
+
+  document.getElementById('stepFormSave').addEventListener('click', async () => {
+    const name = document.getElementById('stepName').value.trim();
+    if(!name){ showToast('Give the step a name.'); return; }
+    const requiresApproval = document.getElementById('stepRequiresApproval').checked;
+    const approverType = document.getElementById('approverType').value;
+
+    const payload = {
+      project_id: projectId,
+      order_index: steps.length + 1,
+      name,
+      responsible_role: document.getElementById('stepResponsible').value.trim() || null,
+      rejectable_by: document.getElementById('stepRejectableBy').value.trim() || null,
+      requires_approval: requiresApproval,
+      approver_type: requiresApproval ? approverType : null,
+      approver_role: requiresApproval && approverType === 'role' ? (document.getElementById('approverRole').value.trim() || null) : null,
+      approver_user_id: requiresApproval && approverType === 'specific_person' ? (document.getElementById('approverPerson').value || null) : null
+    };
+
+    const { error } = await sb.from('steps').insert(payload);
+    if(error){ showToast('Could not add step: ' + error.message); return; }
+
+    document.getElementById('stepName').value = '';
+    document.getElementById('stepResponsible').value = '';
+    document.getElementById('stepRejectableBy').value = '';
+    document.getElementById('stepRequiresApproval').checked = false;
+    document.getElementById('approverFields').style.display = 'none';
+    document.getElementById('stepForm').style.display = 'none';
+    showToast('Step added.');
+    loadSteps();
+  });
+
+  async function loadCards(){
+    const { data, error } = await sb
+      .from('cards')
+      .select('*, assignee:assignee_id(id,name,email)')
+      .eq('project_id', projectId)
+      .is('completed_at', null);
+    cardsCache = data || [];
+    renderBoard();
+  }
+
+  function renderBoard(){
+    const board = document.getElementById('board');
+    const noSteps = document.getElementById('boardEmptyNoSteps');
+    board.innerHTML = '';
+
+    if(steps.length === 0){
+      noSteps.style.display = 'block';
+      return;
+    }
+    noSteps.style.display = 'none';
+
+    steps.forEach(s => {
+      const colCards = cardsCache.filter(c => c.current_step_id === s.id);
+      const col = document.createElement('div');
+      col.className = 'board-col';
+      col.innerHTML = `
+        <div class="board-col-head">
+          <span class="cname">${s.name}</span>
+          <span class="ccount">${colCards.length}</span>
+        </div>
+        <div class="col-cards"></div>
+      `;
+      const colBody = col.querySelector('.col-cards');
+      if(colCards.length === 0){
+        colBody.innerHTML = '<div class="board-empty">No cards here.</div>';
+      } else {
+        colCards.forEach(c => {
+          const tc = document.createElement('div');
+          tc.className = 'task-card';
+          const badge = c.status === 'pending_approval' ? '<span class="pill pending">Pending</span>' : '';
+          tc.innerHTML = `
+            <div class="tname">${c.title}</div>
+            <div class="tmeta">
+              <span>${c.assignee ? c.assignee.name : 'Unassigned'}</span>
+              ${badge}
+            </div>
+          `;
+          tc.addEventListener('click', () => openCardDetail(c));
+          colBody.appendChild(tc);
+        });
+      }
+      board.appendChild(col);
+    });
+  }
+
+  function populateAssigneeSelects(){
+    const opts = projectMembers
+      .filter(m => m.role_in_project !== 'Viewer')
+      .map(m => `<option value="${m.user.id}">${m.user.name} (${m.role_in_project})</option>`).join('');
+    document.getElementById('newCardAssignee').innerHTML = opts || '<option value="">No eligible members</option>';
+  }
+
+  document.getElementById('newCardBtn').addEventListener('click', () => {
+    if(steps.length === 0){ showToast('Add at least one pipeline step first.'); return; }
+    populateAssigneeSelects();
+    document.getElementById('cardModalBackdrop').classList.add('show');
+  });
+  document.getElementById('cardModalCancel').addEventListener('click', () => {
+    document.getElementById('cardModalBackdrop').classList.remove('show');
+  });
+  document.getElementById('cardModalCreate').addEventListener('click', async () => {
+    const title = document.getElementById('newCardTitle').value.trim();
+    const description = document.getElementById('newCardDesc').value.trim();
+    const assignee_id = document.getElementById('newCardAssignee').value;
+    const deadlineVal = document.getElementById('newCardDeadline').value;
+
+    if(!title){ showToast('Give the card a title.'); return; }
+    if(!assignee_id){ showToast('Choose an assignee.'); return; }
+
+    const { error } = await sb.from('cards').insert({
+      project_id: projectId,
+      current_step_id: steps[0].id,
+      title, description: description || null,
+      assignee_id,
+      deadline: deadlineVal || null,
+      created_by: me.id,
+      status: 'in_progress'
+    });
+    if(error){ showToast('Could not create card: ' + error.message); return; }
+
+    document.getElementById('newCardTitle').value = '';
+    document.getElementById('newCardDesc').value = '';
+    document.getElementById('newCardDeadline').value = '';
+    document.getElementById('cardModalBackdrop').classList.remove('show');
+    showToast('Card created.');
+    loadCards();
+  });
+
+  function myProjectRole(){
+    if(me.is_owner) return 'Owner';
+    const m = projectMembers.find(m => m.user.id === me.id);
+    return m ? m.role_in_project : null;
+  }
+
+  function canApprove(step){
+    if(me.is_owner) return true;
+    if(step.approver_type === 'specific_person') return step.approver_user_id === me.id;
+    if(step.approver_type === 'role') return myProjectRole() === step.approver_role;
+    return false;
+  }
+
+  async function openCardDetail(card){
+    currentDetailCard = card;
+    const step = steps.find(s => s.id === card.current_step_id);
+    const isAssignee = card.assignee_id === me.id;
+    const pendingApproval = card.status === 'pending_approval';
+    const iCanApprove = step && pendingApproval && canApprove(step);
+    const iCanReject = step && pendingApproval && (me.is_owner || myProjectRole() === step.rejectable_by || iCanApprove);
+
+    const { data: history } = await sb
+      .from('step_history')
+      .select('action, note, created_at, acted_by:acted_by(name), step:step_id(name)')
+      .eq('card_id', card.id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    const historyHtml = (history || []).map(h => `
+      <div class="history-item">
+        <strong>${h.acted_by ? h.acted_by.name : 'Someone'}</strong> ${h.action} at "${h.step ? h.step.name : '—'}"
+        ${h.note ? ' — ' + h.note : ''}
+        <br><span style="opacity:0.7">${new Date(h.created_at).toLocaleString()}</span>
+      </div>
+    `).join('') || '<div class="history-item">No activity yet.</div>';
+
+    let actionsHtml = '';
+    if(isAssignee && !pendingApproval){
+      actionsHtml = `<button class="btn-create" id="submitCardBtn" style="width:100%; margin-top:16px;">
+        ${step && step.requires_approval ? 'Submit for approval' : 'Mark done & move to next step'}
+      </button>`;
+    } else if(pendingApproval && (iCanApprove || iCanReject)){
+      actionsHtml = `<div class="modal-actions" style="justify-content:flex-start; margin-top:16px;">
+        ${iCanApprove ? '<button class="btn-approve" id="approveCardBtn">Approve</button>' : ''}
+        ${iCanReject ? '<button class="btn-reject" id="rejectCardBtn">Send back</button>' : ''}
+      </div>`;
+    } else if(pendingApproval){
+      actionsHtml = `<p class="detail-meta" style="margin-top:16px;">Waiting on approval — not your action to take.</p>`;
+    }
+
+    const content = document.getElementById('detailModalContent');
+    content.innerHTML = `
+      <h3>${card.title}</h3>
+      <div class="detail-meta">Step: <strong>${step ? step.name : '—'}</strong> ${pendingApproval ? '<span class="pill pending">Pending approval</span>' : ''}</div>
+      <div class="detail-meta">Assignee: ${card.assignee ? card.assignee.name : 'Unassigned'}</div>
+      ${card.deadline ? `<div class="detail-meta">Deadline: ${new Date(card.deadline).toLocaleDateString()}</div>` : ''}
+      <div class="detail-desc">${card.description || 'No description.'}</div>
+      ${actionsHtml}
+      <h3 style="font-size:14px; margin-top:24px;">Activity</h3>
+      <div>${historyHtml}</div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="detailCloseBtn">Close</button>
+      </div>
+    `;
+    document.getElementById('detailModalBackdrop').classList.add('show');
+
+    document.getElementById('detailCloseBtn').addEventListener('click', closeDetail);
+    const submitBtn = document.getElementById('submitCardBtn');
+    if(submitBtn) submitBtn.addEventListener('click', () => submitCard(card, step));
+    const approveBtn = document.getElementById('approveCardBtn');
+    if(approveBtn) approveBtn.addEventListener('click', () => approveCard(card, step));
+    const rejectBtn = document.getElementById('rejectCardBtn');
+    if(rejectBtn) rejectBtn.addEventListener('click', () => openRejectModal(card, step));
+  }
+
+  function closeDetail(){
+    document.getElementById('detailModalBackdrop').classList.remove('show');
+    currentDetailCard = null;
+  }
+
+  async function submitCard(card, step){
+    if(step.requires_approval){
+      await sb.from('cards').update({ status: 'pending_approval' }).eq('id', card.id);
+      await sb.from('step_history').insert({ card_id: card.id, step_id: step.id, action: 'submitted', acted_by: me.id });
+      showToast('Submitted for approval.');
+    } else {
+      await advanceCard(card, step);
+    }
+    closeDetail();
+    loadCards();
+  }
+
+  async function approveCard(card, step){
+    await sb.from('step_history').insert({ card_id: card.id, step_id: step.id, action: 'approved', acted_by: me.id });
+    await advanceCard(card, step);
+    closeDetail();
+    loadCards();
+  }
+
+  async function advanceCard(card, step){
+    const idx = steps.findIndex(s => s.id === step.id);
+    const next = steps[idx + 1];
+    if(next){
+      await sb.from('cards').update({ current_step_id: next.id, status: 'in_progress' }).eq('id', card.id);
+    } else {
+      await sb.from('cards').update({ status: 'done', completed_at: new Date().toISOString() }).eq('id', card.id);
+      showToast('Card completed — final step reached.');
+    }
+  }
+
+  function openRejectModal(card, step){
+    const idx = steps.findIndex(s => s.id === step.id);
+    const earlierSteps = steps.slice(0, idx);
+    const sel = document.getElementById('rejectToStep');
+    sel.innerHTML = earlierSteps.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    if(earlierSteps.length === 0){
+      sel.innerHTML = `<option value="${step.id}">${step.name} (stay here)</option>`;
+    }
+    document.getElementById('rejectNote').value = '';
+    document.getElementById('rejectModalBackdrop').classList.add('show');
+
+    document.getElementById('rejectModalConfirm').onclick = async () => {
+      const toStepId = sel.value;
+      const note = document.getElementById('rejectNote').value.trim();
+      await sb.from('step_history').insert({
+        card_id: card.id, step_id: step.id, action: 'rejected',
+        reject_to_step_id: toStepId, note: note || null, acted_by: me.id
+      });
+      await sb.from('cards').update({ current_step_id: toStepId, status: 'in_progress' }).eq('id', card.id);
+      document.getElementById('rejectModalBackdrop').classList.remove('show');
+      closeDetail();
+      showToast('Sent back for revision.');
+      loadCards();
+    };
+  }
+  document.getElementById('rejectModalCancel').addEventListener('click', () => {
+    document.getElementById('rejectModalBackdrop').classList.remove('show');
   });
 
   document.getElementById('signOutBtn').addEventListener('click', async () => {
@@ -355,7 +973,6 @@
     const ok = await loadProject();
     if(!ok) return;
 
-    // Determine if I can manage members: Owner, or my role on this project is Lead
     let myRole = null;
     if(!me.is_owner){
       const { data: mrow } = await sb.from('project_members')
@@ -370,12 +987,17 @@
     canManage = me.is_owner || myRole === 'Lead';
     document.getElementById('manageBlock').style.display = canManage ? 'block' : 'none';
     document.getElementById('readonlyBlock').style.display = canManage ? 'none' : 'block';
+    document.getElementById('stepManageBlock').style.display = canManage ? 'block' : 'none';
+    document.getElementById('stepReadonlyNote').style.display = canManage ? 'none' : 'block';
+    if(myRole !== 'Viewer') document.getElementById('newCardBtn').style.display = 'inline-block';
 
     document.getElementById('loadingGate').style.display = 'none';
     document.getElementById('app').style.display = 'block';
 
     const existingIds = await loadMembers();
     if(canManage) populateMemberDropdown(existingIds);
+    await loadSteps();
+    await loadCards();
   })();
 </script>
 </body>
