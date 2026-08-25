@@ -355,6 +355,7 @@
       if(!p) return;
       const card = document.createElement('div');
       card.className = 'project-card';
+      card.style.cursor = 'pointer';
       card.innerHTML = `
         <p class="pname">${p.name}</p>
         <p class="pdesc">${p.description || 'No description yet.'}</p>
@@ -363,6 +364,9 @@
           <span class="pill role">${row.role_in_project}</span>
         </div>
       `;
+      card.addEventListener('click', () => {
+        window.location.href = 'project.html?id=' + p.id;
+      });
       grid.appendChild(card);
     });
   }
