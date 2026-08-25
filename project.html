@@ -319,11 +319,11 @@
             </div>
             <div>
               <label>Responsible role</label>
-              <input type="text" id="stepResponsible" placeholder="e.g. Finance">
+              <select id="stepResponsible"><option value="">Select a role…</option></select>
             </div>
             <div>
               <label>Rejectable by</label>
-              <input type="text" id="stepRejectableBy" placeholder="e.g. Lead">
+              <select id="stepRejectableBy"><option value="">Select a role…</option></select>
             </div>
             <div class="checkbox-row">
               <input type="checkbox" id="stepRequiresApproval">
@@ -338,7 +338,7 @@
             </div>
             <div id="approverRoleField" class="full" style="display:none;">
               <label>Approver role</label>
-              <input type="text" id="approverRole" placeholder="e.g. Finance Head">
+              <select id="approverRole"><option value="">Select a role…</option></select>
             </div>
             <div id="approverPersonField" class="full" style="display:none;">
               <label>Approver</label>
@@ -536,15 +536,17 @@
     return data.map(r => r.users && r.users.id).filter(Boolean);
   }
 
-  async function populateMemberDropdown(existingIds){
+  async function populateMemberDropdown(){
     const { data: allUsers } = await sb.from('users').select('id,name,email').order('name');
     const select = document.getElementById('memberSelect');
     select.innerHTML = '<option value="">Select a person…</option>';
     (allUsers || []).forEach(u => {
-      if(existingIds.includes(u.id)) return;
+      const existingRoles = projectMembers.filter(m => m.user.id === u.id).map(m => m.role_in_project);
       const opt = document.createElement('option');
       opt.value = u.id;
-      opt.textContent = `${u.name} (${u.email})`;
+      opt.textContent = existingRoles.length
+        ? `${u.name} (${u.email}) — already: ${existingRoles.join(', ')}`
+        : `${u.name} (${u.email})`;
       select.appendChild(opt);
     });
   }
@@ -567,10 +569,14 @@
     });
     btn.disabled = false;
 
-    if(error){ showError('Could not add: ' + error.message); return; }
+    if(error){
+      if(error.code === '23505') showError('This person already has that exact role on the project.');
+      else showError('Could not add: ' + error.message);
+      return;
+    }
     showSuccess('Member added.');
     document.getElementById('customRole').value = '';
-    loadMembers().then((ids) => { populateMemberDropdown(ids); populateAssigneeSelects(); });
+    loadMembers().then(() => { populateMemberDropdown(); populateAssigneeSelects(); });
   });
 
   function stepSummary(s){
@@ -648,9 +654,19 @@
     loadSteps();
   }
 
+  function populateRoleSelects(){
+    const roles = [...new Set(projectMembers.map(m => m.role_in_project))].sort();
+    const opts = '<option value="">Select a role…</option>' +
+      roles.map(r => `<option value="${r}">${r}</option>`).join('');
+    document.getElementById('stepResponsible').innerHTML = opts;
+    document.getElementById('stepRejectableBy').innerHTML = opts;
+    document.getElementById('approverRole').innerHTML = opts;
+  }
+
   document.getElementById('addStepToggle').addEventListener('click', () => {
     const form = document.getElementById('stepForm');
     form.style.display = form.style.display === 'none' ? 'grid' : 'none';
+    populateRoleSelects();
     populateApproverPersonSelect();
   });
   document.getElementById('stepFormCancel').addEventListener('click', () => {
@@ -994,8 +1010,8 @@
     document.getElementById('loadingGate').style.display = 'none';
     document.getElementById('app').style.display = 'block';
 
-    const existingIds = await loadMembers();
-    if(canManage) populateMemberDropdown(existingIds);
+    await loadMembers();
+    if(canManage) populateMemberDropdown();
     await loadSteps();
     await loadCards();
   })();
