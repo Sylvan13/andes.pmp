@@ -313,6 +313,7 @@
         <div id="stepManageBlock" style="display:none;">
           <button class="btn-secondary" id="addStepToggle" style="margin-top:16px;">+ Add step</button>
           <div class="step-form" id="stepForm" style="display:none;">
+            <div class="full" style="font-weight:600; font-size:13.5px;" id="stepFormTitle">New step</div>
             <div class="full">
               <label>Step name</label>
               <input type="text" id="stepName" placeholder="e.g. Finance drafts quotation">
@@ -344,9 +345,12 @@
               <label>Approver</label>
               <select id="approverPerson"></select>
             </div>
-            <div class="full" style="display:flex; gap:10px; justify-content:flex-end;">
-              <button class="btn-cancel" id="stepFormCancel">Cancel</button>
-              <button class="btn-create" id="stepFormSave">Add step</button>
+            <div class="full" style="display:flex; gap:10px; justify-content:space-between;">
+              <button class="btn-reject" id="stepFormDelete" style="display:none;">Delete step</button>
+              <div style="display:flex; gap:10px;">
+                <button class="btn-cancel" id="stepFormCancel">Cancel</button>
+                <button class="btn-create" id="stepFormSave">Add step</button>
+              </div>
             </div>
           </div>
         </div>
@@ -608,6 +612,7 @@
       steps.forEach((s, i) => {
         const row = document.createElement('div');
         row.className = 'step-row';
+        row.style.cursor = 'pointer';
         row.innerHTML = `
           <div class="step-num">${i+1}</div>
           <div class="step-info">
@@ -621,12 +626,19 @@
             <button class="icon-btn" data-act="del" data-id="${s.id}">✕</button>
           </div>` : ''}
         `;
+        row.addEventListener('click', (e) => {
+          if(e.target.closest('.step-actions')) return;
+          openStepForm(s);
+        });
         list.appendChild(row);
       });
 
       if(canManage){
         list.querySelectorAll('[data-act]').forEach(btn => {
-          btn.addEventListener('click', () => handleStepAction(btn.getAttribute('data-act'), btn.getAttribute('data-id')));
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleStepAction(btn.getAttribute('data-act'), btn.getAttribute('data-id'));
+          });
         });
       }
     }
@@ -654,6 +666,8 @@
     loadSteps();
   }
 
+  let editingStepId = null;
+
   function populateRoleSelects(){
     const roles = [...new Set(projectMembers.map(m => m.role_in_project))].sort();
     const opts = '<option value="">Select a role…</option>' +
@@ -663,14 +677,50 @@
     document.getElementById('approverRole').innerHTML = opts;
   }
 
-  document.getElementById('addStepToggle').addEventListener('click', () => {
-    const form = document.getElementById('stepForm');
-    form.style.display = form.style.display === 'none' ? 'grid' : 'none';
+  function openStepForm(step){
+    if(!canManage) return;
+    editingStepId = step ? step.id : null;
     populateRoleSelects();
     populateApproverPersonSelect();
+
+    document.getElementById('stepName').value = step ? step.name : '';
+    document.getElementById('stepResponsible').value = step ? (step.responsible_role || '') : '';
+    document.getElementById('stepRejectableBy').value = step ? (step.rejectable_by || '') : '';
+    document.getElementById('stepRequiresApproval').checked = step ? step.requires_approval : false;
+    document.getElementById('approverFields').style.display = (step && step.requires_approval) ? 'block' : 'none';
+    document.getElementById('approverType').value = step && step.approver_type ? step.approver_type : 'role';
+    document.getElementById('approverType').dispatchEvent(new Event('change'));
+    document.getElementById('approverRole').value = step ? (step.approver_role || '') : '';
+    if(step && step.approver_user_id) document.getElementById('approverPerson').value = step.approver_user_id;
+
+    document.getElementById('stepFormTitle').textContent = step ? 'Edit step' : 'New step';
+    document.getElementById('stepFormSave').textContent = step ? 'Save changes' : 'Add step';
+    document.getElementById('stepFormDelete').style.display = step ? 'inline-block' : 'none';
+    document.getElementById('stepForm').style.display = 'grid';
+    document.getElementById('stepForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.getElementById('addStepToggle').addEventListener('click', () => {
+    const form = document.getElementById('stepForm');
+    if(form.style.display !== 'none' && editingStepId === null){
+      form.style.display = 'none';
+      return;
+    }
+    openStepForm(null);
   });
   document.getElementById('stepFormCancel').addEventListener('click', () => {
     document.getElementById('stepForm').style.display = 'none';
+    editingStepId = null;
+  });
+  document.getElementById('stepFormDelete').addEventListener('click', async () => {
+    if(!editingStepId) return;
+    if(!confirm('Delete this step? Cards currently on it will need to be moved manually.')) return;
+    const { error } = await sb.from('steps').delete().eq('id', editingStepId);
+    if(error){ showToast('Could not delete: ' + error.message); return; }
+    document.getElementById('stepForm').style.display = 'none';
+    editingStepId = null;
+    showToast('Step deleted.');
+    loadSteps();
   });
   document.getElementById('stepRequiresApproval').addEventListener('change', (e) => {
     document.getElementById('approverFields').style.display = e.target.checked ? 'block' : 'none';
@@ -699,8 +749,6 @@
     const approverType = document.getElementById('approverType').value;
 
     const payload = {
-      project_id: projectId,
-      order_index: steps.length + 1,
       name,
       responsible_role: document.getElementById('stepResponsible').value.trim() || null,
       rejectable_by: document.getElementById('stepRejectableBy').value.trim() || null,
@@ -710,16 +758,18 @@
       approver_user_id: requiresApproval && approverType === 'specific_person' ? (document.getElementById('approverPerson').value || null) : null
     };
 
-    const { error } = await sb.from('steps').insert(payload);
-    if(error){ showToast('Could not add step: ' + error.message); return; }
+    let error;
+    const wasEditing = editingStepId !== null;
+    if(wasEditing){
+      ({ error } = await sb.from('steps').update(payload).eq('id', editingStepId));
+    } else {
+      ({ error } = await sb.from('steps').insert({ ...payload, project_id: projectId, order_index: steps.length + 1 }));
+    }
+    if(error){ showToast('Could not save step: ' + error.message); return; }
 
-    document.getElementById('stepName').value = '';
-    document.getElementById('stepResponsible').value = '';
-    document.getElementById('stepRejectableBy').value = '';
-    document.getElementById('stepRequiresApproval').checked = false;
-    document.getElementById('approverFields').style.display = 'none';
     document.getElementById('stepForm').style.display = 'none';
-    showToast('Step added.');
+    editingStepId = null;
+    showToast(wasEditing ? 'Step saved.' : 'Step added.');
     loadSteps();
   });
 
@@ -881,7 +931,8 @@
       ${actionsHtml}
       <h3 style="font-size:14px; margin-top:24px;">Activity</h3>
       <div>${historyHtml}</div>
-      <div class="modal-actions">
+      <div class="modal-actions" style="${canManage ? 'justify-content:space-between;' : ''}">
+        ${canManage ? '<button class="btn-reject" id="deleteCardBtn">Delete card</button>' : ''}
         <button class="btn-cancel" id="detailCloseBtn">Close</button>
       </div>
     `;
@@ -894,6 +945,17 @@
     if(approveBtn) approveBtn.addEventListener('click', () => approveCard(card, step));
     const rejectBtn = document.getElementById('rejectCardBtn');
     if(rejectBtn) rejectBtn.addEventListener('click', () => openRejectModal(card, step));
+    const deleteBtn = document.getElementById('deleteCardBtn');
+    if(deleteBtn) deleteBtn.addEventListener('click', () => deleteCard(card));
+  }
+
+  async function deleteCard(card){
+    if(!confirm(`Delete "${card.title}"? This can't be undone.`)) return;
+    const { error } = await sb.from('cards').delete().eq('id', card.id);
+    if(error){ showToast('Could not delete: ' + error.message); return; }
+    closeDetail();
+    showToast('Card deleted.');
+    loadCards();
   }
 
   function closeDetail(){
